@@ -1,60 +1,74 @@
 module Game where
 
-stationCost :: Int
-stationCost = 200
+import Data.Vector (empty, Vector, (++), snoc, length, map, (!), (//))
 
-utilityCost :: Int
-utilityCost = 150
+import Board
+import Ground
+import Player
+import Data.Maybe
 
-
-
-
-
-data Ground
-  = FreeParking Int
-  | OwnableGround
-      { name :: String
-      , baseValue :: Int
-      , currentValue :: Maybe Int
-      , rent :: [Int]
-      , owner :: Maybe String
-      }
-  | ExtraTax { name :: String, tax :: Int }
-  | Station
-      { name :: String
-      , owner :: Maybe String
-      , currentValue :: Maybe Int
-      }
-  | Utility
-      { name :: String
-      , owner :: Maybe String
-      , currentValue :: Maybe Int
-      }
-
-
-data Board = Board
-  { grounds :: [Ground]
-  }
-
-data Player = Player
-  { name :: Int
-  , debt :: Int
-  , money :: Int
-  , position :: Int
-  }
-
-getAssets :: String -> Board -> Int
+getAssets :: Int -> Board -> Int
 getAssets player Board { grounds = _grounds } =
-    map (getAssetOrZero player) _grounds
+     sum . Data.Vector.map (getAssetOrZero player) $ _grounds
 
-
-getAssetOrZero player OwnableGround { owner = Just player, currentValue = _currentValue } = _currentValue
-getAssetOrZero player Station { owner = Just player, currentValue = _currentValue } = _currentValue
-getAssetOrZero player Utility { owner = Just player, currentValue = _currentValue } = _currentValue
+getAssetOrZero :: Int -> Ground -> Int
+getAssetOrZero player OwnableGround { owner = Just player_, currentValue = Just _currentValue } = if player_ == player then _currentValue else 0
+getAssetOrZero player Station { owner = Just player_, currentValue = Just _currentValue } = if player_ == player then _currentValue else 0
+getAssetOrZero player Utility { owner = Just player_, currentValue = Just _currentValue } = if player_ == player then _currentValue else 0
 getAssetOrZero player _ = 0
 
 
 data Game = Game
-  { players :: [Player]
+  { players :: Vector Player
   , board :: Board
+  , state :: State
   }
+
+data State
+  = AddPlayers
+  | DiceRoll Int
+  | BuyOrNot Int
+
+initialGame initialBoard = Game
+  { players = Data.Vector.empty
+  , board = initialBoard
+  , state = AddPlayers
+  }
+
+addPlayer :: String -> Game -> (Game, [String])
+addPlayer name_ game =
+  let
+    newPlayer = Player { Player.name = name_, debt = 0, money = 0, position = 0 }
+    newPlayers = snoc (players game) newPlayer
+    newGame = game { players = newPlayers }
+  in
+    (newGame, [name_ Prelude.++ " joined"])
+
+startGame :: Game -> (Game, [String])
+startGame game =
+  let
+    newState = DiceRoll 0
+    newGame = game { state = newState }
+  in
+    (newGame, ["Game started"])
+
+rollDice :: Int -> Int -> Game -> (Game, [String])
+rollDice playerId roll game =
+  let
+    nbPlaces = Data.Vector.length (grounds . board $ game)
+    player = (players game) ! playerId
+    oldPosition = position player
+    newPosition = (oldPosition + roll) `mod` nbPlaces
+    camePastStart = oldPosition < newPosition
+
+    newPlayer = player { position = newPosition }
+    newPlayers = players game Data.Vector.// [(playerId, newPlayer)]
+
+    newGame = game {players = newPlayers}
+    msg = Player.name player Prelude.++
+        " moved " Prelude.++ show roll Prelude.++
+        " from " Prelude.++ show oldPosition Prelude.++
+        " to " Prelude.++ show newPosition
+  in
+    (newGame, [msg])
+
