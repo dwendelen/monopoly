@@ -10,13 +10,15 @@ utilityCost = 150
 
 
 data Ground
-  = FreeParking
+  = Start
+  | FreeParking
   | OwnableGround
       { name :: String
       , baseValue :: Int
       , currentValue :: Maybe Int
       , rent :: [Int]
       , owner :: Maybe Int
+      , color :: String
       }
   | ExtraTax { name :: String, tax :: Int }
   | Station
@@ -31,6 +33,7 @@ data Ground
       }
 
 getGroundName :: Ground -> String
+getGroundName Start = "Start - Start - Start - Start"
 getGroundName FreeParking = "Free Parking"
 getGroundName OwnableGround { name = name_} = name_
 getGroundName ExtraTax { name = name_} = name_
@@ -47,3 +50,7 @@ getOwner OwnableGround { owner = owner_} = owner_
 getOwner Station { owner = owner_} = owner_
 getOwner Utility { owner = owner_} = owner_
 getOwner _ = Nothing
+
+getColor OwnableGround { color = color_} = Just color_
+getColor Station {} = Just "grey"
+getColor _ = Nothing

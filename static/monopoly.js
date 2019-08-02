@@ -69,9 +69,9 @@ function renderPlayers(state) {
     header.insertCell(-1).innerText = "Debt";
     header.insertCell(-1).innerText = "Start money";
 
-    state.players.forEach(player => {
+    state.players.forEach((player, pIdx) => {
         var row = playersTable.insertRow(-1);
-        row.insertCell(-1).innerText = getPlayerName(player);
+        row.insertCell(-1).innerHTML = getPlayerName(player, pIdx);
         row.insertCell(-1).innerText = player.money;
         row.insertCell(-1).innerText = player.assets;
         row.insertCell(-1).innerText = player.debt;
@@ -91,8 +91,11 @@ function renderBoard(state) {
         var cell4 = row.insertCell(-1);
 
         cell1.innerHTML = getOwnerName(state, ground.owner);
+        cell1.classList.add("owner");
         cell2.innerHTML = ground.name;
+        cell2.classList.add("ground-" + ground.color);
         cell3.innerHTML = ground.value || "";
+        cell3.classList.add("amount");
         cell4.innerHTML = getPlayerOnGround(state, index);
     });
 }
@@ -100,7 +103,8 @@ function renderBoard(state) {
 function renderLogs(state) {
     var logs = state.logs.join("<br>");
     state.players.forEach((player, idx) => {
-        logs = logs.replace(player.name, "<span class=\"player" + idx + "\">" + player.name + "</span>")
+        var re = new RegExp(player.name, "g");
+        logs = logs.replace(re, "<span class=\"player" + idx + "\">" + player.name + "</span>")
     });
     document.getElementById("log").innerHTML = logs;
 }
@@ -161,27 +165,24 @@ function getOwnerName(state, idx) {
         return "";
     }
 
-    return getPlayerName(state.players[idx]);
+    return getPlayerName(state.players[idx], idx);
 }
 
 
 function getPlayerOnGround(state, idx) {
     var names = "";
-    state.players.forEach(player => {
+    state.players.forEach((player, pIdx) => {
        if(player.position == idx) {
-           names += getPlayerName(player) + "; ";
+           names += getPlayerName(player, pIdx) + " ";
        }
     });
 
     return names;
 }
 
-function getPlayerName(player) {
+function getPlayerName(player, idx) {
     var name = player.name;
-    if(name == playerName) {
-        name += "***";
-    }
-    return name;
+    return "<span class=\"player" + idx + "\">" + name + "</span>";
 }
 
 function getMyIndex(state) {

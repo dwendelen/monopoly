@@ -44,7 +44,8 @@ mapGround ground =
   GroundView {
       groundName = (Ground.getGroundName ground),
       value = (Ground.getCurrentValueOrInitial ground),
-      owner = (Ground.getOwner ground)
+      owner = (Ground.getOwner ground),
+      color = (Ground.getColor ground)
     }
 
 
@@ -68,7 +69,8 @@ instance ToJSON StateView where
 data GroundView = GroundView {
   groundName :: String,
   value :: Maybe Int,
-  owner :: Maybe Int
+  owner :: Maybe Int,
+  color :: Maybe String
 } deriving (Show)
 
 instance ToJSON GroundView where
@@ -76,6 +78,7 @@ instance ToJSON GroundView where
         [ "name" .= groundName
         , "value"  .= value
         , "owner" .= owner
+        , "color" .= color
         ]
 
 data PlayerView = PlayerView {

@@ -20,10 +20,19 @@ table td {
 
 #log {
     margin-top: 20px;
-    width: 500px;
-    height: 500px;
+    /*width: 500px;
+    height: 500px;*/
     font-size: 11pt;
     color: gray;
+}
+
+.owner {
+    width: 100px;
+}
+
+.amount {
+    width: 40px;
+    text-align: center;
 }
 
 .player0 {
@@ -35,5 +44,53 @@ table td {
 }
 
 .player2 {
-    color: black;
+    color: limegreen;
+}
+
+.player0 {
+    color: navy;
+}
+
+.player1 {
+    color: deeppink;
+}
+
+.player2 {
+    color: limegreen;
+}
+
+.ground-brown {
+    background-color: saddlebrown;
+}
+
+.ground-lightBlue {
+    background-color: dodgerblue;
+}
+
+.ground-pink {
+    background-color: deeppink;
+}
+
+.ground-orange {
+    background-color: darkorange;
+}
+
+.ground-red {
+    background-color: red;
+}
+
+.ground-yellow {
+    background-color: yellow;
+}
+
+.ground-green {
+    background-color: forestgreen;
+}
+
+.ground-darkBlue {
+    background-color: blue;
+}
+
+.ground-grey {
+    background-color: lightgrey;
 }
