@@ -11,7 +11,7 @@ import Data.IORef
 initialGame :: IO (IORef Game)
 initialGame =
   let
-    game = (Game.initialGame InitGame.board)
+    game = (Game.initialGame InitGame.board 0.2 0.06666)
     (game2, _) = addPlayer "Dakke" game
     (game3, _) = addPlayer "Rebecca" game2
   in
@@ -20,7 +20,7 @@ initialGame =
 main2 :: IO ()
 main2 =
   let
-    game1 = Game.initialGame InitGame.board
+    game1 = Game.initialGame InitGame.board 0.2 0.066666
     (game2, msgs2) = addPlayer "Player 1" game1
     (game3, msgs3) = addPlayer "Player 2" game2
     (game4, msgs4) = addPlayer "Player 3" game3

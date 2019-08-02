@@ -66,7 +66,7 @@ function renderPlayers(state) {
         row.insertCell(-1).innerText = player.money;
         row.insertCell(-1).innerText = player.assets;
         row.insertCell(-1).innerText = player.debt;
-        row.insertCell(-1).innerText = "bla";
+        row.insertCell(-1).innerText = player.startMoney;
     });
 }
 

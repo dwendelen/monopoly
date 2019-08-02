@@ -35,7 +35,8 @@ mapPlayer idx game player =
     position = Player.position player,
     money = Player.money player,
     debt = Player.debt player,
-    assets = getAssets idx (Game.board game)
+    assets = getAssets idx (Game.board game),
+    startMoney = calculateStartMoney idx game
   }
 
 mapGround ground =
@@ -77,7 +78,8 @@ data PlayerView = PlayerView {
   position :: Int,
   money :: Int,
   assets :: Int,
-  debt :: Int
+  debt :: Int,
+  startMoney :: Int
 } deriving (Show)
 
 instance ToJSON PlayerView where
@@ -87,6 +89,7 @@ instance ToJSON PlayerView where
         , "money" .= money
         , "assets" .= assets
         , "debt" .= debt
+        , "startMoney" .= startMoney
         ]
 
 instance ToJSON State where

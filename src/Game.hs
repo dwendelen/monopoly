@@ -7,6 +7,8 @@ import Ground
 import Player
 import Data.Maybe
 
+baseStartMoney = 200
+
 getAssets :: Int -> Board -> Int
 getAssets player Board { grounds = _grounds } =
      sum . Data.Vector.map (getAssetOrZero player) $ _grounds
@@ -17,11 +19,22 @@ getAssetOrZero player Station { owner = Just player_, currentValue = Just _curre
 getAssetOrZero player Utility { owner = Just player_, currentValue = Just _currentValue } = if player_ == player then _currentValue else 0
 getAssetOrZero player _ = 0
 
+calculateStartMoney :: Int -> Game -> Int
+calculateStartMoney pIdx game =
+  let
+    debt = Player.debt (players game ! pIdx)
+    returnFromEco = (Game.returnRate game) * fromIntegral (Game.economy game)
+    interest = (Game.interestRate game) * fromIntegral debt
+  in
+    round (returnFromEco + fromIntegral baseStartMoney - interest)
 
 data Game = Game
   { players :: Vector Player
   , board :: Board
   , state :: State
+  , interestRate :: Float
+  , returnRate :: Float
+  , economy :: Int
   }
 
 data State
@@ -29,10 +42,13 @@ data State
   | DiceRoll {player :: Int }
   | BuyOrNot {player:: Int }
 
-initialGame initialBoard = Game
+initialGame initialBoard interestRate returnRate = Game
   { players = Data.Vector.empty
   , board = initialBoard
   , state = AddPlayers
+  , interestRate = interestRate
+  , returnRate = returnRate
+  , economy = 0
   }
 
 addPlayer :: String -> Game -> (Game, [String])
