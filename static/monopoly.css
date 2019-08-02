@@ -1,14 +1,19 @@
-#groundTable {
+table {
     border-width: 1px;
     border-style: solid;
+    border-spacing: 0;
 }
 
-#groundTable td {
+table td {
     border-width: 1px;
     border-style: solid;
-
+    border-spacing: 0;
 }
 
 .hidden {
     display: none;
+}
+
+.float {
+    float: left;
 }

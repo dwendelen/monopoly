@@ -2,13 +2,17 @@ var playerName = new URLSearchParams(window.location.search).get('name');
 
 var stateObj = null;
 
-var interv = setInterval(async () => {
-    try {
-        await refresh();
-    } catch (e) {
-        clearInterval(interv);
-    }
-}, 200);
+function startLoop() {
+    var interv = setInterval(async () => {
+        try {
+            await refresh();
+        } catch (e) {
+            clearInterval(interv);
+        }
+    }, 200);
+}
+
+
 
 async function refresh() {
     var state = await getStateCall();
@@ -22,23 +26,12 @@ function render(state) {
     let playerElement = document.getElementById("player");
     playerElement.innerText = "Welcome " + playerName;
 
-    let groundTable = document.getElementById("groundTable");
-    groundTable.innerText = "";
+    renderButtons(state);
+    renderPlayers(state);
+    renderBoard(state);
+}
 
-
-    state.grounds.forEach((ground, index) => {
-        var row = groundTable.insertRow(-1);
-        var cell1 = row.insertCell(-1);
-        var cell2 = row.insertCell(-1);
-        var cell3 = row.insertCell(-1);
-        var cell4 = row.insertCell(-1);
-
-        cell1.innerHTML = getOwnerName(state, ground.owner);
-        cell2.innerHTML = ground.name;
-        cell3.innerHTML = ground.value || "";
-        cell4.innerHTML = getPlayerOnGround(state, index);
-    });
-
+function renderButtons(state) {
     cleanButton("startGameButton");
     cleanButton("rollButton");
     cleanButton("dontbuyButton");
@@ -53,6 +46,46 @@ function render(state) {
             enableButton("rollButton");
         }
     }
+}
+
+function renderPlayers(state) {
+    let playersTable = document.getElementById("playersTable");
+    playersTable.innerText = "";
+
+    var header = playersTable.createTHead();
+    header = header.insertRow(0);
+    header.insertCell(-1).innerText = "";
+    header.insertCell(-1).innerText = "Money";
+    header.insertCell(-1).innerText = "Assets";
+    header.insertCell(-1).innerText = "Debt";
+    header.insertCell(-1).innerText = "Start money";
+
+    state.players.forEach(player => {
+        var row = playersTable.insertRow(-1);
+        row.insertCell(-1).innerText = getPlayerName(player);
+        row.insertCell(-1).innerText = player.money;
+        row.insertCell(-1).innerText = player.assets;
+        row.insertCell(-1).innerText = player.debt;
+        row.insertCell(-1).innerText = "bla";
+    });
+}
+
+function renderBoard(state) {
+    let groundTable = document.getElementById("groundTable");
+    groundTable.innerText = "";
+
+    state.grounds.forEach((ground, index) => {
+        var row = groundTable.insertRow(-1);
+        var cell1 = row.insertCell(-1);
+        var cell2 = row.insertCell(-1);
+        var cell3 = row.insertCell(-1);
+        var cell4 = row.insertCell(-1);
+
+        cell1.innerHTML = getOwnerName(state, ground.owner);
+        cell2.innerHTML = ground.name;
+        cell3.innerHTML = ground.value || "";
+        cell4.innerHTML = getPlayerOnGround(state, index);
+    });
 }
 
 function cleanButton(id) {

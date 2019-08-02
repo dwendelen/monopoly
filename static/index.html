@@ -9,16 +9,24 @@
 </head>
 <body>
     <div id="outer">
-        <button onclick="refresh()">Refresh</button>
-        <div id="player"></div>
-        <button id="startGameButton" class="hidden" onclick="startGame()">Start Game</button>
-        <button id="rollButton" class="hidden" onclick="roll()">Roll</button>
-        <button id="dontbuyButton" class="hidden">Do not buy</button>
-        <button id="buyCashButton" class="hidden">Buy with cash</button>
-        <button id="buyBorrowButton" class="hidden">Buy with loan</button>
-        <table id="groundTable">
+        <div class="float">
+            <table id="groundTable"></table>
+        </div>
+        <div class="float" style="margin-left: 100px">
+            <button onclick="refresh()">Refresh</button>
+            <div style="margin-top:20px">
+                <div id="player"></div><div>Total economy: <span id="economy">0</span></div>
+            </div>
+            <table id="playersTable" style="margin-top:20px; margin-bottom: 20px;"></table>
+            <button id="startGameButton" class="hidden" onclick="startGame()">Start Game</button>
+            <button id="rollButton" class="hidden" onclick="roll()">Roll</button>
+            <button id="dontbuyButton" class="hidden">Do not buy</button>
+            <button id="buyCashButton" class="hidden">Buy with cash</button>
+            <button id="buyBorrowButton" class="hidden">Buy with loan</button>
 
-        </table>
+        </div>
+
     </div>
+    <script>startLoop()</script>
 </body>
 </html>
