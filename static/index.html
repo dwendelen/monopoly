@@ -8,6 +8,17 @@
     <script src="monopoly.js"></script>
 </head>
 <body>
-    <div id="outer"></div>
+    <div id="outer">
+        <button onclick="refresh()">Refresh</button>
+        <div id="player"></div>
+        <button id="startGameButton" class="hidden" onclick="startGame()">Start Game</button>
+        <button id="rollButton" class="hidden" onclick="roll()">Roll</button>
+        <button id="dontbuyButton" class="hidden">Do not buy</button>
+        <button id="buyCashButton" class="hidden">Buy with cash</button>
+        <button id="buyBorrowButton" class="hidden">Buy with loan</button>
+        <table id="groundTable">
+
+        </table>
+    </div>
 </body>
 </html>

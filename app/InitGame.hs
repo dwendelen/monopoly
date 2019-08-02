@@ -9,7 +9,13 @@ import Data.IORef
 
 
 initialGame :: IO (IORef Game)
-initialGame = newIORef (Game.initialGame InitGame.board)
+initialGame =
+  let
+    game = (Game.initialGame InitGame.board)
+    (game2, _) = addPlayer "Dakke" game
+    (game3, _) = addPlayer "Rebecca" game2
+  in
+    newIORef game3
 
 main2 :: IO ()
 main2 =

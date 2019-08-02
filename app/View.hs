@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 
 module View where
 
@@ -11,6 +13,8 @@ import Player
 import Data.Vector
 
 import Debug.Trace
+import GHC.Generics
+
 
 mapGame :: Game -> StateView
 mapGame game =
@@ -35,13 +39,12 @@ mapPlayer idx game player =
   }
 
 mapGround ground =
-  let
-    gg = (GroundView {
+  GroundView {
       groundName = (Ground.getGroundName ground),
-      value = (Ground.getCurrentValueOrInitial ground)
-    })
-  in
-    trace ("grrr" Prelude.++ show gg) gg
+      value = (Ground.getCurrentValueOrInitial ground),
+      owner = (Ground.getOwner ground)
+    }
+
 
 data StateView = StateView {
   grounds :: [GroundView],
@@ -58,13 +61,15 @@ instance ToJSON StateView where
 
 data GroundView = GroundView {
   groundName :: String,
-  value :: Maybe Int
+  value :: Maybe Int,
+  owner :: Maybe Int
 } deriving (Show)
 
 instance ToJSON GroundView where
     toJSON GroundView {..} = object
         [ "name" .= groundName
         , "value"  .= value
+        , "owner" .= owner
         ]
 
 data PlayerView = PlayerView {
@@ -100,3 +105,13 @@ instance ToJSON State where
 
 addPlayersDummy :: String -> State -> String
 addPlayersDummy str _  = str
+
+
+
+
+data RollRTO = RollRTO {
+  roll :: Int,
+  player :: Int
+} deriving (Generic, Show)
+
+instance FromJSON RollRTO where

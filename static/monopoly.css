@@ -1,0 +1,14 @@
+#groundTable {
+    border-width: 1px;
+    border-style: solid;
+}
+
+#groundTable td {
+    border-width: 1px;
+    border-style: solid;
+
+}
+
+.hidden {
+    display: none;
+}

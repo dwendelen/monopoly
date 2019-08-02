@@ -56,6 +56,8 @@ rollDice :: Int -> Int -> Game -> (Game, [String])
 rollDice playerId roll game =
   let
     nbPlaces = Data.Vector.length (grounds . board $ game)
+    nbPlayers = Data.Vector.length (players game)
+
     player = (players game) ! playerId
     oldPosition = position player
     newPosition = (oldPosition + roll) `mod` nbPlaces
@@ -64,7 +66,10 @@ rollDice playerId roll game =
     newPlayer = player { position = newPosition }
     newPlayers = players game Data.Vector.// [(playerId, newPlayer)]
 
-    newGame = game {players = newPlayers}
+    nextPlayerId = (playerId + 1) `mod` nbPlayers
+
+    newState = DiceRoll nextPlayerId
+    newGame = game {players = newPlayers, state = newState}
     msg = Player.name player Prelude.++
         " moved " Prelude.++ show roll Prelude.++
         " from " Prelude.++ show oldPosition Prelude.++

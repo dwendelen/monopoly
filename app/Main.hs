@@ -22,6 +22,8 @@ data App = App
 mkYesod "App" [parseRoutes|
 /static StaticR Static getStatic
 /state StateR GET
+/game/startGame StartGameR POST
+/game/roll RollR POST
 |]
 
 instance Yesod App
@@ -43,6 +45,25 @@ getStateR = do
   game_ <- liftIO . readIORef $ gameRef
   returnJson (mapGame game_)
 
+postStartGameR :: Handler Value
+postStartGameR = doAction startGame
+
+postRollR :: Handler Value
+postRollR = do
+  rollRTO <- requireJsonBody :: Handler RollRTO
+  doAction (rollDice (View.player rollRTO) (roll rollRTO))
+
+doAction :: (Game -> (Game, [String])) -> Handler Value
+doAction action = do
+  gameRef <- fmap game getYesod
+  liftIO $ do
+    game1 <- readIORef gameRef
+    let (game2, _) = action game1
+    writeIORef gameRef game2
+
+  returnJson (object [])
+
+--main = main2
 
 main :: IO ()
 main = do

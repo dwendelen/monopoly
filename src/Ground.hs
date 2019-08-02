@@ -42,3 +42,8 @@ getCurrentValueOrInitial OwnableGround {currentValue = cval, baseValue = bval} =
 getCurrentValueOrInitial Station {currentValue = cval } = Just (fromMaybe stationCost cval)
 getCurrentValueOrInitial Utility {currentValue = cval } = Just (fromMaybe utilityCost cval)
 getCurrentValueOrInitial _ = Nothing
+
+getOwner OwnableGround { owner = owner_} = owner_
+getOwner Station { owner = owner_} = owner_
+getOwner Utility { owner = owner_} = owner_
+getOwner _ = Nothing
