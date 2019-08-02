@@ -26,7 +26,8 @@ mapGame game =
         players = Data.Vector.toList players,
         grounds =  Data.Vector.toList  grounds,
         state = state,
-        economy = Game.economy game
+        economy = Game.economy game,
+        logs = Game.logs game
       }
 
 mapPlayer idx game player =
@@ -51,7 +52,8 @@ data StateView = StateView {
   grounds :: [GroundView],
   players :: [PlayerView],
   state :: State,
-  economy :: Int
+  economy :: Int,
+  logs :: [String]
 } --deriving (Show)
 
 instance ToJSON StateView where
@@ -60,6 +62,7 @@ instance ToJSON StateView where
         , "players" .= players
         , "state" .= state
         , "economy" .= economy
+        , "logs" .= logs
         ]
 
 data GroundView = GroundView {
@@ -107,10 +110,6 @@ instance ToJSON State where
          "type" .= String "BuyOrNot",
          "player" .= player
         ]
-
-addPlayersDummy :: String -> State -> String
-addPlayersDummy str _  = str
-
 
 
 

@@ -30,6 +30,7 @@ function render(state) {
     renderButtons(state);
     renderPlayers(state);
     renderBoard(state);
+    renderLogs(state);
 }
 
 function renderButtons(state) {
@@ -94,6 +95,14 @@ function renderBoard(state) {
         cell3.innerHTML = ground.value || "";
         cell4.innerHTML = getPlayerOnGround(state, index);
     });
+}
+
+function renderLogs(state) {
+    var logs = state.logs.join("<br>");
+    state.players.forEach((player, idx) => {
+        logs = logs.replace(player.name, "<span class=\"player" + idx + "\">" + player.name + "</span>")
+    });
+    document.getElementById("log").innerHTML = logs;
 }
 
 function cleanButton(id) {

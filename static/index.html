@@ -17,15 +17,17 @@
             <div style="margin-top:20px">
                 <div id="player"></div><div>Total economy: <span id="economy">0</span></div>
             </div>
-            <table id="playersTable" style="margin-top:20px; margin-bottom: 20px;"></table>
-            <button id="startGameButton" class="hidden" onclick="startGame()">Start Game</button>
-            <button id="rollButton" class="hidden" onclick="roll()">Roll</button>
-            <button id="dontbuyButton" class="hidden" onclick="dontBuy()">Do not buy</button>
-            <button id="buyCashButton" class="hidden" onclick="buyCash()">Buy with cash</button>
-            <button id="buyBorrowButton" class="hidden" onclick="buyBorrow()">Buy with loan</button>
-
+            <div>
+                <table id="playersTable" style="margin-top:20px; margin-bottom: 20px;"></table>
+                <button id="startGameButton" class="hidden" onclick="startGame()">Start Game</button>
+                <button id="rollButton" class="hidden" onclick="roll()">Roll</button>
+                <button id="dontbuyButton" class="hidden" onclick="dontBuy()">Do not buy</button>
+                <button id="buyCashButton" class="hidden" onclick="buyCash()">Buy with cash</button>
+                <button id="buyBorrowButton" class="hidden" onclick="buyBorrow()">Buy with loan</button>
+            </div>
+            <div id="log">
+            </div>
         </div>
-
     </div>
     <script>startLoop()</script>
 </body>

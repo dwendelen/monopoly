@@ -71,12 +71,12 @@ postBuyBorrowR = do
     playerOnly <- requireJsonBody :: Handler PlayerOnly
     doAction (buyBorrow (View.player playerOnly))
 
-doAction :: (Game -> (Game, [String])) -> Handler Value
+doAction :: (Game -> Game) -> Handler Value
 doAction action = do
   gameRef <- fmap game getYesod
   liftIO $ do
     game1 <- readIORef gameRef
-    let (game2, _) = action game1
+    let game2 = action game1
     writeIORef gameRef game2
 
   returnJson (object [])

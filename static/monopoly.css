@@ -17,3 +17,23 @@ table td {
 .float {
     float: left;
 }
+
+#log {
+    margin-top: 20px;
+    width: 500px;
+    height: 500px;
+    font-size: 11pt;
+    color: gray;
+}
+
+.player0 {
+    color: navy;
+}
+
+.player1 {
+    color: deeppink;
+}
+
+.player2 {
+    color: black;
+}

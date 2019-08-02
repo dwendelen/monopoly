@@ -11,33 +11,12 @@ initialGame :: IO (IORef Game)
 initialGame =
   let
     game = (Game.initialGame InitGame.board 0.2 0.06666)
-    (game2, _) = addPlayer "Dakke" game
-    (game3, _) = addPlayer "Rebecca" game2
+    game2 = addPlayer "Dakke" game
+    game3 = addPlayer "Rebecca" game2
+    game4 = addPlayer "Mick" game3
   in
-    newIORef game3
+    newIORef game4
 
-main2 :: IO ()
-main2 =
-  let
-    game1 = Game.initialGame InitGame.board 0.2 0.066666
-    (game2, msgs2) = addPlayer "Player 1" game1
-    (game3, msgs3) = addPlayer "Player 2" game2
-    (game4, msgs4) = addPlayer "Player 3" game3
-    (game5, msgs5) = startGame game4
-    (game6, msgs6) = rollDice 0 5 game5
-    (game7, msgs7) = rollDice 1 9 game6
-    (game8, msgs8) = rollDice 2 10 game7
-    (game9, msgs9) = rollDice 0 39 game8
-  in
-    do
-      mapM_ putStrLn msgs2
-      mapM_ putStrLn msgs3
-      mapM_ putStrLn msgs4
-      mapM_ putStrLn msgs5
-      mapM_ putStrLn msgs6
-      mapM_ putStrLn msgs7
-      mapM_ putStrLn msgs8
-      mapM_ putStrLn msgs9
 
 board :: Vector Ground
 board = fromList [ FreeParking
