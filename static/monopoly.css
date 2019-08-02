@@ -35,6 +35,10 @@ table td {
     text-align: center;
 }
 
+.buttons {
+    height: 25px;
+}
+
 .player0 {
     color: navy;
 }

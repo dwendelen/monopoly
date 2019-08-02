@@ -128,3 +128,10 @@ data PlayerOnly = PlayerOnly {
 } deriving (Generic, Show)
 
 instance FromJSON PlayerOnly where
+
+data PayBackRTO = PayBackRTO {
+  payBackPlayer :: Int,
+  payBackAmount :: Int
+} deriving (Generic, Show)
+
+instance FromJSON PayBackRTO where

@@ -17,8 +17,11 @@
             <div style="margin-top:20px">
                 <div id="player"></div><div>Total economy: <span id="economy">0</span></div>
             </div>
-            <div>
-                <table id="playersTable" style="margin-top:20px; margin-bottom: 20px;"></table>
+            <div style="margin-top: 20px">
+                <input id="payBackAmount"><button onclick="payBackDebt()">Pay back debt</button>
+            </div>
+            <table id="playersTable" style="margin-top:20px; margin-bottom: 20px;"></table>
+            <div class="buttons">
                 <button id="startGameButton" class="hidden" onclick="startGame()">Start Game</button>
                 <button id="rollButton" class="hidden" onclick="roll()">Roll</button>
                 <button id="dontbuyButton" class="hidden" onclick="dontBuy()">Do not buy</button>

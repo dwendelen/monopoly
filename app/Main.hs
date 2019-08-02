@@ -27,6 +27,7 @@ mkYesod "App" [parseRoutes|
 /game/dont-buy DontBuyR POST
 /game/buy-cash BuyCashR POST
 /game/buy-borrow BuyBorrowR POST
+/game/pay-back-debt PayBackDebtR POST
 |]
 
 instance Yesod App
@@ -70,6 +71,11 @@ postBuyBorrowR :: Handler Value
 postBuyBorrowR = do
     playerOnly <- requireJsonBody :: Handler PlayerOnly
     doAction (buyBorrow (View.player playerOnly))
+
+postPayBackDebtR :: Handler Value
+postPayBackDebtR = do
+  payBackRTO <- requireJsonBody :: Handler PayBackRTO
+  doAction (payBack (payBackPlayer payBackRTO) (payBackAmount payBackRTO))
 
 doAction :: (Game -> Game) -> Handler Value
 doAction action = do

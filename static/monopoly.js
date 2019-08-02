@@ -17,7 +17,6 @@ function startLoop() {
 async function refresh() {
     var state = await getStateCall();
     stateObj = JSON.parse(state);
-    console.log(stateObj);
 
     render(stateObj);
 }
@@ -138,6 +137,19 @@ function buyCash() {
 }
 function buyBorrow() {
     postAndRefresh("/game/buy-borrow", {player: getMyIndex(stateObj)});
+}
+
+function payBackDebt() {
+    let asString = document.getElementById("payBackAmount").value;
+    let asInt = parseInt(asString);
+
+    if(isNaN(asInt)) {
+        return;
+    }
+
+    document.getElementById("payBackAmount").value = "";
+
+    postAndRefresh("/game/pay-back-debt", {payBackPlayer: getMyIndex(stateObj), payBackAmount: asInt})
 }
 
 function postAndRefresh(url, data) {

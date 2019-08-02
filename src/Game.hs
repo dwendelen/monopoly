@@ -125,6 +125,8 @@ handleLanding roll game playerId =
 handleLandedOnGround :: Int -> Game -> Int -> Ground -> Game
 handleLandedOnGround _ game playerId FreeParking =
   nextPlayer game playerId
+handleLandedOnGround _ game playerId Start =
+  nextPlayer game playerId
 handleLandedOnGround _ game playerId ExtraTax {} =
   nextPlayer game playerId --todo
 
@@ -233,6 +235,16 @@ buyBorrow playerId game =
     gameAfterLogging = addLog (Player.name player Prelude.++ " bought " Prelude.++ Ground.getGroundName boughtGround Prelude.++ " with a loan for " Prelude.++ show price) gameAfterBuying
   in
     nextPlayer gameAfterLogging playerId
+
+payBack :: Int -> Int -> Game -> Game
+payBack playerId amount game =
+  let
+    player = players game ! playerId
+    newPlayer = player { money = money player - amount, debt = debt player - amount}
+    msg = Player.name player Prelude.++ " paid back " Prelude.++ show amount
+    newPlayers = players game // [(playerId, newPlayer)]
+  in
+    addLog msg $ game {players = newPlayers}
 
 addLog :: String -> Game -> Game
 addLog msg game =
