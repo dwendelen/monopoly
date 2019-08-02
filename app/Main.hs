@@ -60,7 +60,7 @@ postRollR = do
 postDontBuyR :: Handler Value
 postDontBuyR = do
   playerOnly <- requireJsonBody :: Handler PlayerOnly
-  doAction dontBuy
+  doAction (dontBuy (View.player playerOnly))
 
 postBuyCashR :: Handler Value
 postBuyCashR = do

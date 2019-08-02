@@ -70,11 +70,20 @@ function renderPlayers(state) {
 
     state.players.forEach((player, pIdx) => {
         var row = playersTable.insertRow(-1);
-        row.insertCell(-1).innerHTML = getPlayerName(player, pIdx);
-        row.insertCell(-1).innerText = player.money;
-        row.insertCell(-1).innerText = player.assets;
-        row.insertCell(-1).innerText = player.debt;
-        row.insertCell(-1).innerText = player.startMoney;
+        let cell1 = row.insertCell(-1);
+        cell1.innerHTML = getPlayerName(player, pIdx);
+        let cell2 = row.insertCell(-1);
+        cell2.innerText = player.money;
+        cell2.classList.add("playerAmount");
+        let cell3 = row.insertCell(-1);
+        cell3.innerText = player.assets;
+        cell3.classList.add("playerAmount");
+        let cell4 = row.insertCell(-1);
+        cell4.innerText = player.debt;
+        cell4.classList.add("playerAmount");
+        let cell5 = row.insertCell(-1);
+        cell5.innerText = player.startMoney;
+        cell5.classList.add("playerAmount");
     });
 }
 

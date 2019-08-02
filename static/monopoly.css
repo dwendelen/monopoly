@@ -10,6 +10,24 @@ table td {
     border-spacing: 0;
 }
 
+
+#playersTable {
+    border-right-style: none;
+    border-bottom-style: none;
+}
+
+#playersTable td {
+    padding-left: 10px;
+    padding-right: 10px;
+
+    border-left-style: none;
+    border-top-style: none;
+}
+
+.playerAmount {
+    text-align: right;
+}
+
 .hidden {
     display: none;
 }
