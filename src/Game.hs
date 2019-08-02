@@ -26,8 +26,8 @@ data Game = Game
 
 data State
   = AddPlayers
-  | DiceRoll Int
-  | BuyOrNot Int
+  | DiceRoll {player :: Int }
+  | BuyOrNot {player:: Int }
 
 initialGame initialBoard = Game
   { players = Data.Vector.empty

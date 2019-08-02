@@ -1,5 +1,7 @@
 module Ground where
 
+import Data.Maybe(fromMaybe)
+
 stationCost :: Int
 stationCost = 200
 
@@ -27,3 +29,16 @@ data Ground
       , owner :: Maybe Int
       , currentValue :: Maybe Int
       }
+
+getGroundName :: Ground -> String
+getGroundName FreeParking = "Free Parking"
+getGroundName OwnableGround { name = name_} = name_
+getGroundName ExtraTax { name = name_} = name_
+getGroundName Station { name = name_ } = name_
+getGroundName Utility { name = name_ } = name_
+
+getCurrentValueOrInitial :: Ground -> Maybe Int
+getCurrentValueOrInitial OwnableGround {currentValue = cval, baseValue = bval} = Just (fromMaybe bval cval)
+getCurrentValueOrInitial Station {currentValue = cval } = Just (fromMaybe stationCost cval)
+getCurrentValueOrInitial Utility {currentValue = cval } = Just (fromMaybe utilityCost cval)
+getCurrentValueOrInitial _ = Nothing
