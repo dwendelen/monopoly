@@ -24,6 +24,9 @@ mkYesod "App" [parseRoutes|
 /state StateR GET
 /game/startGame StartGameR POST
 /game/roll RollR POST
+/game/dont-buy DontBuyR POST
+/game/buy-cash BuyCashR POST
+/game/buy-borrow BuyBorrowR POST
 |]
 
 instance Yesod App
@@ -51,7 +54,22 @@ postStartGameR = doAction startGame
 postRollR :: Handler Value
 postRollR = do
   rollRTO <- requireJsonBody :: Handler RollRTO
-  doAction (rollDice (View.player rollRTO) (roll rollRTO))
+  doAction (rollDice (View.rollPlayer rollRTO) (roll rollRTO))
+
+postDontBuyR :: Handler Value
+postDontBuyR = do
+  playerOnly <- requireJsonBody :: Handler PlayerOnly
+  doAction (\g -> nextPlayer g (View.player playerOnly))
+
+postBuyCashR :: Handler Value
+postBuyCashR = do
+    playerOnly <- requireJsonBody :: Handler PlayerOnly
+    doAction (buyCash (View.player playerOnly))
+
+postBuyBorrowR :: Handler Value
+postBuyBorrowR = do
+    playerOnly <- requireJsonBody :: Handler PlayerOnly
+    doAction (buyBorrow (View.player playerOnly))
 
 doAction :: (Game -> (Game, [String])) -> Handler Value
 doAction action = do

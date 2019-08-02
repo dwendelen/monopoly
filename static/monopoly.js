@@ -26,6 +26,7 @@ function render(state) {
     let playerElement = document.getElementById("player");
     playerElement.innerText = "Welcome " + playerName;
 
+    document.getElementById("economy").innerText = state.economy;
     renderButtons(state);
     renderPlayers(state);
     renderBoard(state);
@@ -44,6 +45,13 @@ function renderButtons(state) {
     if(state.state.type == "DiceRoll") {
         if(state.state.player == getMyIndex(state)) {
             enableButton("rollButton");
+        }
+    }
+    if(state.state.type == "BuyOrNot") {
+        if(state.state.player == getMyIndex( state)) {
+            enableButton("dontbuyButton");
+            enableButton("buyCashButton");
+            enableButton("buyBorrowButton");
         }
     }
 }
@@ -106,7 +114,17 @@ function roll() {
 
     var roll = dice1 + dice2;
 
-    postAndRefresh("/game/roll", {player: getMyIndex(stateObj), roll: roll});
+    postAndRefresh("/game/roll", {rollPlayer: getMyIndex(stateObj), roll: roll});
+}
+
+function dontBuy() {
+    postAndRefresh("/game/dont-buy", {player: getMyIndex(stateObj)});
+}
+function buyCash() {
+    postAndRefresh("/game/buy-cash", {player: getMyIndex(stateObj)});
+}
+function buyBorrow() {
+    postAndRefresh("/game/buy-borrow", {player: getMyIndex(stateObj)});
 }
 
 function postAndRefresh(url, data) {

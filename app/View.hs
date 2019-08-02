@@ -7,7 +7,6 @@ module View where
 
 import Yesod
 import Game
-import Board
 import Ground
 import Player
 import Data.Vector
@@ -20,13 +19,14 @@ mapGame :: Game -> StateView
 mapGame game =
   let
     players = Data.Vector.imap (\i p -> mapPlayer i game p) (Game.players game)
-    grounds = Data.Vector.map mapGround (Board.grounds . Game.board $ game)
+    grounds = Data.Vector.map mapGround (Game.grounds game)
     state = Game.state game
   in
     StateView {
         players = Data.Vector.toList players,
         grounds =  Data.Vector.toList  grounds,
-        state = state
+        state = state,
+        economy = Game.economy game
       }
 
 mapPlayer idx game player =
@@ -35,7 +35,7 @@ mapPlayer idx game player =
     position = Player.position player,
     money = Player.money player,
     debt = Player.debt player,
-    assets = getAssets idx (Game.board game),
+    assets = getAssets idx game,
     startMoney = calculateStartMoney idx game
   }
 
@@ -50,7 +50,8 @@ mapGround ground =
 data StateView = StateView {
   grounds :: [GroundView],
   players :: [PlayerView],
-  state :: State
+  state :: State,
+  economy :: Int
 } --deriving (Show)
 
 instance ToJSON StateView where
@@ -58,6 +59,7 @@ instance ToJSON StateView where
         [ "grounds" .= grounds
         , "players" .= players
         , "state" .= state
+        , "economy" .= economy
         ]
 
 data GroundView = GroundView {
@@ -114,7 +116,13 @@ addPlayersDummy str _  = str
 
 data RollRTO = RollRTO {
   roll :: Int,
-  player :: Int
+  rollPlayer :: Int
 } deriving (Generic, Show)
 
 instance FromJSON RollRTO where
+
+data PlayerOnly = PlayerOnly {
+  player :: Int
+} deriving (Generic, Show)
+
+instance FromJSON PlayerOnly where

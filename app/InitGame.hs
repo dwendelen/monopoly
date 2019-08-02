@@ -2,8 +2,7 @@ module InitGame where
 
 import Game
 import Ground
-import Board
-import Data.Vector(fromList)
+import Data.Vector(Vector, fromList)
 import Data.IORef
 
 
@@ -40,10 +39,8 @@ main2 =
       mapM_ putStrLn msgs8
       mapM_ putStrLn msgs9
 
-board :: Board
-board = Board
-    { grounds =
-        fromList [ FreeParking
+board :: Vector Ground
+board = fromList [ FreeParking
 
         , dinant
         , FreeParking
@@ -91,7 +88,6 @@ board = Board
         , ExtraTax { name = "Extra Belasting", tax = 100 }
         , nieuwstraat
         ]
-    }
 
 ownable = OwnableGround
     { currentValue = Nothing
