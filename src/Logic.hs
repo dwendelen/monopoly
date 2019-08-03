@@ -7,15 +7,14 @@ import Player
 
 addPlayer :: String -> Game -> Game
 addPlayer name_ =
-  addLog (name_ Prelude.++ " joined") . Game.addPlayer name_
+  addLog (name_ ++ " joined") . Game.addPlayer name_
 
 startGame :: Game -> Game
 startGame =
   addLog "Game started" . Game.startGame
 
--- todo swap pid
-rollDice :: PlayerId -> Steps -> Game -> Game
-rollDice pId roll game =
+rollDice :: Steps -> PlayerId -> Game -> Game
+rollDice roll pId game =
   let
     (gameAfterMove, camePastStart) = movePlayer roll pId game
 
@@ -23,14 +22,14 @@ rollDice pId roll game =
     newGroundName = getPlayerGroundName pId gameAfterMove
     playerName = getPlayerName pId game
 
-    msg = playerName Prelude.++
-        " moved " Prelude.++ show roll Prelude.++
-        " from " Prelude.++ oldGroundName Prelude.++
-        " to " Prelude.++ newGroundName
+    msg = playerName ++
+        " moved " ++ show roll ++
+        " from " ++ oldGroundName ++
+        " to " ++ newGroundName
 
     gameAfterMovingPlayer = addLog msg gameAfterMove
     gameAfterStartMoney = if camePastStart
-          then applyStartMoney gameAfterMovingPlayer pId
+          then applyStartMoney pId gameAfterMovingPlayer
           else gameAfterMovingPlayer
 
     gameAfterHandling = handleLanding roll pId gameAfterStartMoney
@@ -38,14 +37,13 @@ rollDice pId roll game =
     gameAfterHandling
 
 
--- todo swap pid
-applyStartMoney :: Game -> PlayerId -> Game
-applyStartMoney game pId =
+applyStartMoney :: PlayerId -> Game -> Game
+applyStartMoney pId game =
   let
     amount = calculateStartMoney pId game
     gameAfterUpdates = fromEconomyToPlayer amount pId game
 
-    msg = getPlayerName pId game Prelude.++ " received " Prelude.++ show amount Prelude.++ " start money"
+    msg = getPlayerName pId game ++ " received " ++ show amount ++ " start money"
   in
     addLog msg gameAfterUpdates
 
@@ -54,19 +52,21 @@ handleLanding roll pId game =
   let
     currentGround = getPlayerGround pId game
   in
-    handleLandedOnGround roll game pId currentGround
+    handleLandedOnGround roll pId currentGround game
 
 
 -- todo fix param order
-handleLandedOnGround :: Steps -> Game -> PlayerId -> Ground -> Game
-handleLandedOnGround _ game playerId Start =
-  Logic.nextPlayer game playerId
-handleLandedOnGround _ game playerId FreeParking =
-  Logic.nextPlayer game playerId
-handleLandedOnGround _ game playerId ExtraTax {} =
-  Logic.nextPlayer game playerId --todo
+handleLandedOnGround :: Steps -> PlayerId -> Ground -> Game -> Game
+handleLandedOnGround _ pId Start game =
+  Logic.nextPlayer pId game
 
-handleLandedOnGround roll game pId ground =
+handleLandedOnGround _ pId FreeParking game =
+  Logic.nextPlayer pId game
+
+handleLandedOnGround _ pId ExtraTax {} game =
+  Logic.nextPlayer pId game --todo
+
+handleLandedOnGround roll pId ground game =
   let
     maybeOwner = getOwner ground
   in
@@ -75,39 +75,37 @@ handleLandedOnGround roll game pId ground =
       Just owner_ ->
         let
           amount = Ground.amountToPay roll ground
-          gameAfterPay = pay pId owner_ amount game
+          gameAfterPay = pay amount pId owner_ game
           gameToContinueFrom = if owner_ == pId  then game else gameAfterPay
         in
-          Logic.nextPlayer gameToContinueFrom pId
+          Logic.nextPlayer pId gameToContinueFrom
 
 
 
--- todo order
-nextPlayer :: Game -> PlayerId -> Game
-nextPlayer game playerId =
+nextPlayer :: PlayerId -> Game -> Game
+nextPlayer pId game =
   let
-      newGame = Game.nextPlayer game playerId
+      newGame = Game.nextPlayer pId game
       newPlayer = currentPlayer game
     in
-      addLog (getPlayerName newPlayer game Prelude.++ " is next") newGame
+      addLog (getPlayerName newPlayer game ++ " is next") newGame
 
--- todo order pid and amount
-pay :: PlayerId -> PlayerId -> Amount -> Game -> Game
-pay from to amount game =
+pay :: Amount -> PlayerId -> PlayerId -> Game -> Game
+pay amount from to game =
   let
-    gameAfterPaying = updatePlayer from (removeMoney amount) . updatePlayer to (addMoney amount) $ game
-    msg = getPlayerName from game Prelude.++ " payed " Prelude.++ getPlayerName to game Prelude.++ " " Prelude.++ show amount Prelude.++ " rent"
+    gameAfterPaying = updatePlayer (removeMoney amount) from . updatePlayer (addMoney amount) to $ game
+    msg = getPlayerName from game ++ " payed " ++ getPlayerName to game ++ " " ++ show amount ++ " rent"
   in
     addLog msg gameAfterPaying
 
 
 dontBuy :: PlayerId -> Game -> Game
-dontBuy playerId game =
+dontBuy pId game =
   let
-    playerName = getPlayerName playerId game
-    groundName = getPlayerGroundName playerId game
-    msg = playerName Prelude.++ " decided not to buy " Prelude.++ groundName
+    playerName = getPlayerName pId game
+    groundName = getPlayerGroundName pId game
+    msg = playerName ++ " decided not to buy " ++ groundName
 
     gameWithMsg = addLog msg game
   in
-    Logic.nextPlayer gameWithMsg playerId
+    Logic.nextPlayer pId gameWithMsg

@@ -56,7 +56,7 @@ postStartGameR = doAction Logic.startGame
 postRollR :: Handler Value
 postRollR = do
   rollRTO <- requireCheckJsonBody :: Handler RollRTO
-  doAction (rollDice (View.rollPlayer rollRTO) (roll rollRTO))
+  doAction (rollDice (roll rollRTO) (View.rollPlayer rollRTO))
 
 postDontBuyR :: Handler Value
 postDontBuyR = do

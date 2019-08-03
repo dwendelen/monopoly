@@ -15,17 +15,17 @@ import Data.Vector
 import GHC.Generics
 
 
-mapGame :: Game -> StateView
+mapGame :: Game -> GameView
 mapGame game =
   let
     players = Data.Vector.imap (\i _ -> mapPlayer i game) (Game.players game)
     grounds = Data.Vector.map mapGround (Game.grounds game)
     state = Game.state game
   in
-    StateView {
+    GameView {
         players = Data.Vector.toList players,
         grounds =  Data.Vector.toList  grounds,
-        state = state,
+        state =  StateView state,
         economy = Game.economy game,
         logs = Game.logs game
       }
@@ -54,16 +54,16 @@ mapGround ground =
     }
 
 
-data StateView = StateView {
+data GameView = GameView {
   grounds :: [GroundView],
   players :: [PlayerView],
-  state :: State,
+  state :: StateView,
   economy :: Int,
   logs :: [String]
 } --deriving (Show)
 
-instance ToJSON StateView where
-    toJSON StateView {..} = object
+instance ToJSON GameView where
+    toJSON GameView {..} = object
         [ "grounds" .= grounds
         , "players" .= players
         , "state" .= state
@@ -105,15 +105,16 @@ instance ToJSON PlayerView where
         , "startMoney" .= startMoney
         ]
 
-instance ToJSON State where
-  toJSON AddPlayers = object
+newtype StateView = StateView State
+instance ToJSON StateView where
+  toJSON (StateView AddPlayers) = object
         [ "type" .= String "AddPlayers"  ]
-  toJSON DiceRoll {..}  = object
+  toJSON (StateView DiceRoll {..})  = object
         [
          "type" .= String "DiceRoll",
          "player" .= player
         ]
-  toJSON BuyOrNot {..} = object
+  toJSON (StateView BuyOrNot {..}) = object
         [
          "type" .= String "BuyOrNot",
          "player" .= player
@@ -128,7 +129,7 @@ data RollRTO = RollRTO {
 
 instance FromJSON RollRTO where
 
-data PlayerOnly = PlayerOnly {
+newtype PlayerOnly = PlayerOnly {
   player :: Int
 } deriving (Generic, Show)
 
