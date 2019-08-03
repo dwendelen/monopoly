@@ -173,6 +173,7 @@ function postAndRefresh(url, data) {
             }
         }
     };
+    xhttp.setRequestHeader("Content-Type", "application/json");
 
     if(data) {
         xhttp.send(JSON.stringify(data));

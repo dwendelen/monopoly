@@ -1,31 +1,14 @@
 module Game where
 
-import Data.Vector (empty, Vector, (++), snoc, length, map, (!), (//))
+import Data.Vector (empty, Vector, snoc, length, map, (!), (//))
 
 import Ground
 import Player
+import Types
 import Data.Maybe
 
+baseStartMoney :: Amount
 baseStartMoney = 200
-
-getAssets :: Int -> Game -> Int
-getAssets player Game { grounds = _grounds } =
-     sum . Data.Vector.map (getAssetOrZero player) $ _grounds
-
-getAssetOrZero :: Int -> Ground -> Int
-getAssetOrZero player OwnableGround { owner = Just player_, currentValue = Just _currentValue } = if player_ == player then _currentValue else 0
-getAssetOrZero player Station { owner = Just player_, currentValue = Just _currentValue } = if player_ == player then _currentValue else 0
-getAssetOrZero player Utility { owner = Just player_, currentValue = Just _currentValue } = if player_ == player then _currentValue else 0
-getAssetOrZero player _ = 0
-
-calculateStartMoney :: Int -> Game -> Int
-calculateStartMoney pIdx game =
-  let
-    debt = Player.debt (players game ! pIdx)
-    returnFromEco = (Game.returnRate game) * fromIntegral (Game.economy game)
-    interest = (Game.interestRate game) * fromIntegral debt
-  in
-    round (returnFromEco + fromIntegral baseStartMoney - interest)
 
 data Game = Game
   { players :: Vector Player
@@ -33,175 +16,152 @@ data Game = Game
   , state :: State
   , interestRate :: Float
   , returnRate :: Float
-  , economy :: Int
+  , economy :: Amount
   , logs :: [String]
   }
 
 data State
   = AddPlayers
-  | DiceRoll {player :: Int }
-  | BuyOrNot {player:: Int }
+  | DiceRoll {player :: PlayerId }
+  | BuyOrNot {player:: PlayerId }
 
-initialGame initialBoard interestRate returnRate = Game
+initialGame :: Vector Ground -> Float -> Float -> Game
+initialGame initialBoard interestRate_ returnRate_ = Game
   { players = Data.Vector.empty
   , grounds = initialBoard
   , state = AddPlayers
-  , interestRate = interestRate
-  , returnRate = returnRate
+  , interestRate = interestRate_
+  , returnRate = returnRate_
   , economy = 0
   , logs = []
   }
+
+getAssets :: PlayerId -> Game -> Amount
+getAssets pId Game { grounds = _grounds } =
+     sum . Data.Vector.map (getAssetOrZero pId) $ _grounds
+
+getAssetOrZero :: PlayerId -> Ground -> Amount
+getAssetOrZero pId ground =
+    case Ground.getOwner ground of
+      Nothing -> 0
+      Just owner__ ->
+        if owner__ == pId
+          then fromJust $ getCurrentValueOrInitial ground
+          else 0
+
+
+calculateStartMoney :: PlayerId -> Game -> Amount
+calculateStartMoney pIdx game =
+  let
+    debt_ = Player.debt $ getPlayer pIdx game
+    returnFromEco = Game.returnRate game * fromIntegral (Game.economy game)
+    interest = Game.interestRate game * fromIntegral debt_
+  in
+    round (returnFromEco + fromIntegral baseStartMoney - interest)
 
 addPlayer :: String -> Game -> Game
 addPlayer name_ game =
   let
     newPlayer = Player { Player.name = name_, debt = 0, money = 0, position = 0 }
     newPlayers = snoc (players game) newPlayer
-    newGame = game { players = newPlayers }
   in
-    addLog (name_ Prelude.++ " joined") newGame
+    game { players = newPlayers }
 
 startGame :: Game -> Game
 startGame game =
+    game { state = DiceRoll 0 }
+
+getPlayer :: PlayerId -> Game -> Player
+getPlayer pId game =
+  players game ! pId
+
+getPlayerPosition :: PlayerId -> Game -> Position
+getPlayerPosition pId game =
+  position $ getPlayer pId game
+
+getPlayerGround :: PlayerId -> Game -> Ground
+getPlayerGround pId game =
+  grounds game ! getPlayerPosition pId game
+
+getPlayerGroundName :: PlayerId -> Game -> String
+getPlayerGroundName pId =
+  Ground.getGroundName . getPlayerGround pId
+
+getPlayerName :: PlayerId -> Game -> String
+getPlayerName pId
+  = Player.name . getPlayer pId
+
+movePlayer :: Steps -> PlayerId -> Game -> (Game, Bool)
+movePlayer amount pId game =
   let
-    newState = DiceRoll 0
-    newGame = game { state = newState }
+    nbOfGrounds = Data.Vector.length . grounds $ game
+    gameAfterMove = updatePlayer pId (Player.move amount nbOfGrounds) game
+
+    oldPos = getPlayerPosition pId game
+    newPos = getPlayerPosition pId gameAfterMove
+    camePastStart = newPos < oldPos
   in
-    addLog "Game started" newGame
+    (gameAfterMove, camePastStart)
 
-rollDice :: Int -> Int -> Game -> Game
-rollDice playerId roll game =
+-- todo swap pid
+updatePlayer :: PlayerId -> (Player -> Player) -> Game -> Game
+updatePlayer pId fn game =
   let
-    nbPlaces = Data.Vector.length (grounds $ game)
-
-    player = players game ! playerId
-    oldPosition = position player
-    newPosition = (oldPosition + roll) `mod` nbPlaces
-    camePastStart = newPosition < oldPosition
-
-    newPlayer = player { position = newPosition }
-    newPlayers = players game Data.Vector.// [(playerId, newPlayer)]
-
-    oldGroundName = Ground.getGroundName $ grounds game ! oldPosition
-    newGroundName = Ground.getGroundName $ grounds game ! newPosition
-
-    msg = Player.name player Prelude.++
-        " moved " Prelude.++ show roll Prelude.++
-        " from " Prelude.++ oldGroundName Prelude.++
-        " to " Prelude.++ newGroundName
-
-    gameAfterMovingPlayer = addLog msg $ game { players = newPlayers }
-    gameAfterStartMoney = if camePastStart
-          then applyStartMoney gameAfterMovingPlayer playerId
-          else gameAfterMovingPlayer
-
-    gameAfterHandling = handleLanding roll gameAfterStartMoney playerId
+    player_ = getPlayer pId game
+    newPlayer = fn player_
+    newPlayers = players game Data.Vector.// [(pId, newPlayer)]
   in
-    gameAfterHandling
+    game { players = newPlayers }
 
-applyStartMoney :: Game -> Int -> Game
-applyStartMoney game playerId =
+addToEconomy :: Amount -> Game -> Game
+addToEconomy amount game =
+  game { economy = economy game + amount }
+
+fromEconomyToPlayer :: Amount -> PlayerId -> Game -> Game
+fromEconomyToPlayer amount pId =
+  addToEconomy (- amount) . updatePlayer pId (Player.addMoney amount)
+
+fromPlayerToEconomy :: Amount -> PlayerId -> Game -> Game
+fromPlayerToEconomy amount =
+  fromEconomyToPlayer (- amount)
+
+addLog :: String -> Game -> Game
+addLog msg game =
   let
-    amount = calculateStartMoney playerId game
-    player = players game ! playerId
-    playerAfterPaying = player { money = money player + amount}
-    economyAfterPaying = economy game - amount
-    newPlayers = players game Data.Vector.// [(playerId, playerAfterPaying)]
-    gameAfterUpdates = game { players = newPlayers, economy = economyAfterPaying }
-    msg = Player.name player Prelude.++ " received " Prelude.++ show amount Prelude.++ " start money"
+    oldLogs = Game.logs game
+    withExtra = msg : oldLogs
+    newLogs = take 100 withExtra
   in
-    addLog msg gameAfterUpdates
+    game {logs = newLogs}
 
-handleLanding :: Int -> Game -> Int -> Game
-handleLanding roll game playerId =
+-- todo swap pid
+nextPlayer :: Game -> PlayerId -> Game
+nextPlayer game pId =
   let
-    player = players game ! playerId
-    pos = Player.position player
-
-    currentGround = (Game.grounds game) ! pos
+    nbPlayers = Data.Vector.length (players game)
+    nextPlayerId = (pId + 1) `mod` nbPlayers
+    newState = DiceRoll nextPlayerId
   in
-    handleLandedOnGround roll game playerId currentGround
+    game {state = newState}
 
-handleLandedOnGround :: Int -> Game -> Int -> Ground -> Game
-handleLandedOnGround _ game playerId FreeParking =
-  nextPlayer game playerId
-handleLandedOnGround _ game playerId Start =
-  nextPlayer game playerId
-handleLandedOnGround _ game playerId ExtraTax {} =
-  nextPlayer game playerId --todo
-
-handleLandedOnGround _ game playerId OwnableGround {  owner = Nothing  } =
-  game { state = BuyOrNot playerId }
-handleLandedOnGround _ game playerId OwnableGround {  rent = rent , owner = Just owner  } =
-  let
-    gameAfterPay = pay playerId owner (head rent) game
-    gameToContinueFrom = if playerId == owner then game else gameAfterPay
-  in
-    nextPlayer gameToContinueFrom playerId
-
-handleLandedOnGround _ game playerId Utility {  owner = Nothing  } =
-  game { state = BuyOrNot playerId }
-handleLandedOnGround roll game playerId Utility { owner = Just owner  } =
-  let
-    gameAfterPay = pay playerId owner (4 * roll) game
-    gameToContinueFrom = if playerId == owner then game else gameAfterPay
-  in
-    nextPlayer gameToContinueFrom playerId
-
-handleLandedOnGround _ game playerId Station {  owner = Nothing  } =
-  game { state = BuyOrNot playerId }
-handleLandedOnGround _ game playerId Station { owner = Just owner  } =
-  let
-    gameAfterPay = pay playerId owner 25 game
-    gameToContinueFrom = if playerId == owner then game else gameAfterPay
-  in
-    nextPlayer gameToContinueFrom playerId
+currentPlayer :: Game -> PlayerId
+currentPlayer Game { state = DiceRoll {player = pId } } = pId
+currentPlayer Game { state = BuyOrNot {player = pId } } = pId
+currentPlayer Game { state = AddPlayers } = undefined
+-- Should come in logic
 
 
-nextPlayer game playerId =
-  let
-      nbPlayers = Data.Vector.length (players game)
-      nextPlayerId = (playerId + 1) `mod` nbPlayers
-      newState = DiceRoll nextPlayerId
-      newGame = game {state = newState}
-
-      newPlayer = players newGame ! nextPlayerId
-    in
-      addLog (Player.name newPlayer Prelude.++ " is next") newGame
-
-pay :: Int -> Int -> Int -> Game -> Game
-pay from to amount game =
-  let
-    playerFrom = Game.players game ! from
-    playerTo = Game.players game ! to
-    playerFromAfterPay = playerFrom { money = money playerFrom - amount}
-    playerToAfterPay = playerTo { money = money playerTo + amount}
-    newPlayers = Game.players game // [(to, playerToAfterPay), (from, playerFromAfterPay)]
-  in
-    addLog (Player.name playerFrom Prelude.++ " payed " Prelude.++ Player.name playerTo Prelude.++ " " Prelude.++ show amount Prelude.++ " rent") $ game {players = newPlayers}
-
-dontBuy :: Int -> Game -> Game
-dontBuy playerId game =
-  let
-    player = players game ! playerId
-    playerName = Player.name $ player
-    groundName = Ground.getGroundName $  grounds game ! (position player)
-    msg = playerName Prelude.++ " decided not to buy " Prelude.++ groundName
-
-    gameWithMsg = addLog msg game
-  in
-    nextPlayer gameWithMsg playerId
-
-buyCash :: Int -> Game -> Game
+-- end should come in logic
+buyCash :: PlayerId -> Game -> Game
 buyCash playerId game =
   let
     player = players game ! playerId
     pos = Player.position player
-    currentGround = (Game.grounds game) ! pos
+    currentGround = getPlayerGround playerId game
 
     price = fromJust $ getCurrentValueOrInitial currentGround
 
-    boughtGround = currentGround { owner = Just playerId, currentValue = Just price}
+    boughtGround = currentGround { owner = Just playerId }
     newGrounds = (Game.grounds game) // [(pos, boughtGround)]
 
     playerAfterPaying = player { money = money player - price }
@@ -214,7 +174,7 @@ buyCash playerId game =
   in
     nextPlayer gameAfterLogging playerId
 
-buyBorrow :: Int -> Game -> Game
+buyBorrow :: PlayerId -> Game -> Game
 buyBorrow playerId game =
   let
     player = players game ! playerId
@@ -223,7 +183,7 @@ buyBorrow playerId game =
 
     price = fromJust $ getCurrentValueOrInitial currentGround
 
-    boughtGround = currentGround { owner = Just playerId, currentValue = Just price}
+    boughtGround = currentGround { owner = Just playerId }
     newGrounds = (Game.grounds game) // [(pos, boughtGround)]
 
     playerAfterPaying = player { debt = debt player + price }
@@ -236,7 +196,8 @@ buyBorrow playerId game =
   in
     nextPlayer gameAfterLogging playerId
 
-payBack :: Int -> Int -> Game -> Game
+-- todo swap pid
+payBack :: PlayerId -> Amount -> Game -> Game
 payBack playerId amount game =
   let
     player = players game ! playerId
@@ -246,11 +207,3 @@ payBack playerId amount game =
   in
     addLog msg $ game {players = newPlayers}
 
-addLog :: String -> Game -> Game
-addLog msg game =
-  let
-    oldLogs = Game.logs game
-    withExtra = msg : oldLogs
-    newLogs = take 100 withExtra
-  in
-    game {logs = newLogs}

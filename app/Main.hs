@@ -8,7 +8,8 @@ import Yesod.Static
 import Data.Text (Text)
 
 import Data.IORef
-import Game
+import Game (Game, buyCash, buyBorrow, payBack) --todo reduce
+import Logic
 import InitGame
 import View
 
@@ -50,31 +51,31 @@ getStateR = do
   returnJson (mapGame game_)
 
 postStartGameR :: Handler Value
-postStartGameR = doAction startGame
+postStartGameR = doAction Logic.startGame
 
 postRollR :: Handler Value
 postRollR = do
-  rollRTO <- requireJsonBody :: Handler RollRTO
+  rollRTO <- requireCheckJsonBody :: Handler RollRTO
   doAction (rollDice (View.rollPlayer rollRTO) (roll rollRTO))
 
 postDontBuyR :: Handler Value
 postDontBuyR = do
-  playerOnly <- requireJsonBody :: Handler PlayerOnly
+  playerOnly <- requireCheckJsonBody :: Handler PlayerOnly
   doAction (dontBuy (View.player playerOnly))
 
 postBuyCashR :: Handler Value
 postBuyCashR = do
-    playerOnly <- requireJsonBody :: Handler PlayerOnly
+    playerOnly <- requireCheckJsonBody :: Handler PlayerOnly
     doAction (buyCash (View.player playerOnly))
 
 postBuyBorrowR :: Handler Value
 postBuyBorrowR = do
-    playerOnly <- requireJsonBody :: Handler PlayerOnly
+    playerOnly <- requireCheckJsonBody :: Handler PlayerOnly
     doAction (buyBorrow (View.player playerOnly))
 
 postPayBackDebtR :: Handler Value
 postPayBackDebtR = do
-  payBackRTO <- requireJsonBody :: Handler PayBackRTO
+  payBackRTO <- requireCheckJsonBody :: Handler PayBackRTO
   doAction (payBack (payBackPlayer payBackRTO) (payBackAmount payBackRTO))
 
 doAction :: (Game -> Game) -> Handler Value
@@ -92,7 +93,6 @@ doAction action = do
 main :: IO ()
 main = do
     newGame <- InitGame.initialGame
-    -- Get the static subsite, as well as the settings it is based on
-    static@(Static settings) <- static "static"
-    warpDebug 3000 $ App { getStatic = static, game = newGame }
+    static_ <- static "static"
+    warp 3000 $ App { getStatic = static_, game = newGame }
 

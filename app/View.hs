@@ -9,16 +9,16 @@ import Yesod
 import Game
 import Ground
 import Player
+import Types
 import Data.Vector
 
-import Debug.Trace
 import GHC.Generics
 
 
 mapGame :: Game -> StateView
 mapGame game =
   let
-    players = Data.Vector.imap (\i p -> mapPlayer i game p) (Game.players game)
+    players = Data.Vector.imap (\i _ -> mapPlayer i game) (Game.players game)
     grounds = Data.Vector.map mapGround (Game.grounds game)
     state = Game.state game
   in
@@ -30,22 +30,27 @@ mapGame game =
         logs = Game.logs game
       }
 
-mapPlayer idx game player =
-  PlayerView {
-    playerName = Player.name player,
-    position = Player.position player,
-    money = Player.money player,
-    debt = Player.debt player,
-    assets = getAssets idx game,
-    startMoney = calculateStartMoney idx game
-  }
+mapPlayer :: PlayerId -> Game -> PlayerView
+mapPlayer idx game =
+  let
+    player = Game.getPlayer idx game
+  in
+    PlayerView {
+      playerName = Player.name player,
+      position = Player.position player,
+      money = Player.money player,
+      debt = Player.debt player,
+      assets = getAssets idx game,
+      startMoney = calculateStartMoney idx game
+    }
 
+mapGround :: Ground -> GroundView
 mapGround ground =
   GroundView {
-      groundName = (Ground.getGroundName ground),
-      value = (Ground.getCurrentValueOrInitial ground),
-      owner = (Ground.getOwner ground),
-      color = (Ground.getColor ground)
+      groundName = Ground.getGroundName ground,
+      value = Ground.getCurrentValueOrInitial ground,
+      owner = Ground.getOwner ground,
+      color = Ground.getColor ground
     }
 
 
