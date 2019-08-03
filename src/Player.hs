@@ -23,3 +23,11 @@ addMoney amount player =
 
 removeMoney :: Amount -> Player -> Player
 removeMoney amount = addMoney (-amount)
+
+borrow :: Amount -> Player -> Player
+borrow amount player =
+  player { money = money player + amount, debt = debt player + amount }
+
+payBack :: Amount -> Player -> Player
+payBack amount =
+  borrow (-amount)

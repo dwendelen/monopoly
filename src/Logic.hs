@@ -5,6 +5,8 @@ import Types
 import Ground
 import Player
 
+import Data.Maybe (fromJust)
+
 addPlayer :: String -> Game -> Game
 addPlayer name_ =
   addLog (name_ ++ " joined") . Game.addPlayer name_
@@ -109,3 +111,40 @@ dontBuy pId game =
     gameWithMsg = addLog msg game
   in
     Logic.nextPlayer pId gameWithMsg
+
+
+buyCash :: PlayerId -> Game -> Game
+buyCash pId game =
+  let
+    currentGround = getPlayerGround pId game
+    price = fromJust $ getCurrentValueOrInitial currentGround
+
+    chOwner = updateGround (changeOwner pId) (getPlayerPosition pId game)
+    buy = fromPlayerToEconomy price pId
+
+    gameAfterBuying = chOwner . buy $ game
+    msg = getPlayerName pId game ++ " bought " ++ Ground.getGroundName currentGround ++ " for " ++ show price
+    gameAfterLogging = addLog msg gameAfterBuying
+  in
+    Logic.nextPlayer pId gameAfterLogging
+
+buyBorrow :: PlayerId -> Game -> Game
+buyBorrow pId game =
+  let
+    currentGround = getPlayerGround pId game
+    price = fromJust $ getCurrentValueOrInitial currentGround
+
+    gameAfterBorrow = updatePlayer (borrow price) pId game
+
+    msg = getPlayerName pId game ++ " borrowed " ++ show price
+    gameAfterLogging = addLog msg gameAfterBorrow
+  in
+    buyCash pId gameAfterLogging
+
+payBack :: Amount -> PlayerId -> Game -> Game
+payBack amount pId game =
+  let
+    gameAfterUpdate = updatePlayer (Player.payBack amount) pId game
+    msg = getPlayerName pId game ++ " paid back " ++ show amount
+  in
+    addLog msg gameAfterUpdate

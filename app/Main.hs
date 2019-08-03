@@ -8,7 +8,7 @@ import Yesod.Static
 import Data.Text (Text)
 
 import Data.IORef
-import Game (Game, buyCash, buyBorrow, payBack) --todo reduce
+import Game (Game)
 import Logic
 import InitGame
 import View
@@ -76,15 +76,12 @@ postBuyBorrowR = do
 postPayBackDebtR :: Handler Value
 postPayBackDebtR = do
   payBackRTO <- requireCheckJsonBody :: Handler PayBackRTO
-  doAction (payBack (payBackPlayer payBackRTO) (payBackAmount payBackRTO))
+  doAction (payBack (payBackAmount payBackRTO) (payBackPlayer payBackRTO))
 
 doAction :: (Game -> Game) -> Handler Value
 doAction action = do
   gameRef <- fmap game getYesod
-  liftIO $ do
-    game1 <- readIORef gameRef
-    let game2 = action game1
-    writeIORef gameRef game2
+  _ <- liftIO $ atomicModifyIORef gameRef (\g -> (action g, ()))
 
   returnJson (object [])
 

@@ -124,6 +124,15 @@ fromPlayerToEconomy :: Amount -> PlayerId -> Game -> Game
 fromPlayerToEconomy amount =
   fromEconomyToPlayer (- amount)
 
+updateGround :: (Ground -> Ground) -> Position -> Game -> Game
+updateGround fn pos game =
+  let
+    ground = grounds game ! pos
+    newGround = fn ground
+    newGrounds = grounds game // [(pos, newGround)]
+  in
+    game {grounds = newGrounds }
+
 addLog :: String -> Game -> Game
 addLog msg game =
   let
@@ -146,62 +155,3 @@ currentPlayer :: Game -> PlayerId
 currentPlayer Game { state = DiceRoll {player = pId } } = pId
 currentPlayer Game { state = BuyOrNot {player = pId } } = pId
 currentPlayer Game { state = AddPlayers } = undefined
--- Should come in logic
-
-
--- end should come in logic
-buyCash :: PlayerId -> Game -> Game
-buyCash pId game =
-  let
-    player_ = players game ! pId
-    pos = Player.position player_
-    currentGround = getPlayerGround pId game
-
-    price = fromJust $ getCurrentValueOrInitial currentGround
-
-    boughtGround = currentGround { owner = Just pId }
-    newGrounds = (Game.grounds game) // [(pos, boughtGround)]
-
-    playerAfterPaying = player_ { money = money player_ - price }
-    newPlayers = (Game.players game) // [(pId, playerAfterPaying)]
-
-    economyAfterPaying = economy game + price
-
-    gameAfterBuying = game { economy = economyAfterPaying, players = newPlayers, grounds = newGrounds}
-    gameAfterLogging = addLog (Player.name player_ Prelude.++ " bought " Prelude.++ Ground.getGroundName boughtGround Prelude.++ " with cash for " Prelude.++ show price) gameAfterBuying
-  in
-    nextPlayer pId gameAfterLogging
-
-buyBorrow :: PlayerId -> Game -> Game
-buyBorrow pId game =
-  let
-    player_ = players game ! pId
-    pos = Player.position player_
-    currentGround = (Game.grounds game) ! pos
-
-    price = fromJust $ getCurrentValueOrInitial currentGround
-
-    boughtGround = currentGround { owner = Just pId }
-    newGrounds = (Game.grounds game) // [(pos, boughtGround)]
-
-    playerAfterPaying = player_ { debt = debt player_ + price }
-    newPlayers = (Game.players game) // [(pId, playerAfterPaying)]
-
-    economyAfterPaying = economy game + price
-
-    gameAfterBuying = game { economy = economyAfterPaying, players = newPlayers, grounds = newGrounds}
-    gameAfterLogging = addLog (Player.name player_ Prelude.++ " bought " Prelude.++ Ground.getGroundName boughtGround Prelude.++ " with a loan for " Prelude.++ show price) gameAfterBuying
-  in
-    nextPlayer pId gameAfterLogging
-
--- todo swap pid
-payBack :: Amount -> PlayerId -> Game -> Game
-payBack amount pId game =
-  let
-    player_ = players game ! pId
-    newPlayer = player_ { money = money player_ - amount, debt = debt player_ - amount}
-    msg = Player.name player_ Prelude.++ " paid back " Prelude.++ show amount
-    newPlayers = players game // [(pId, newPlayer)]
-  in
-    addLog msg $ game {players = newPlayers}
-

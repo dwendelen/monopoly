@@ -2,10 +2,10 @@ module Ground where
 
 import Types
 
-stationCost :: Int
+stationCost :: Amount
 stationCost = 200
 
-utilityCost :: Int
+utilityCost :: Amount
 utilityCost = 150
 
 data Ground
@@ -60,3 +60,7 @@ amountToPay _ Station {} = 25
 amountToPay _ Start = undefined
 amountToPay _ FreeParking = undefined
 amountToPay _ ExtraTax {} = undefined
+
+changeOwner :: PlayerId -> Ground -> Ground
+changeOwner pId ground =
+  ground { owner = Just pId }
